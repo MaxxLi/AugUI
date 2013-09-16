@@ -214,19 +214,32 @@ function Contaminants_Callback(hObject, eventdata, handles)
 %%%%%%%%%%%%%%%%%%%%%%%
 % ADD Group dropdown update
 
+warning('off','all')
 index = get(handles.Contaminants, 'Value');
+set(handles.concdrop, 'String', ' ');
+set(handles.groupIDdrop, 'String', ' ');
 if index == 11
     mask = sum(handles.allPPM,2) == 0;
 else 
     mask = handles.allPPM(:,index) > 0;
+    concentration = unique(handles.allPPM(:, index));
+    concentration = concentration(find(concentration));
+    
+    if ~isempty(concentration)
+        set(handles.concdrop, 'String', concentration);
+    end
+end
+
+groupID = unique(handles.allID(mask));
+
+if ~isempty(groupID)
+    set(handles.groupIDdrop, 'String', groupID);
+else 
+    msgbox('No ID detected');
 end
 
 
-concentration = unique(handles.allPPM(:, index));
-concentration = concentration(find(concentration));
-groupID = unique(handles.allID(mask));
-set(handles.groupIDdrop, 'String', groupID);
-set(handles.concdrop, 'String', concentration);
+
 
 
 
