@@ -240,7 +240,7 @@ else
 end
 
 groupID = unique(handles.allID(mask));
-groupID = num2str(groupID);
+groupID = num2str(groupID
 groupID = strvcat('default', groupID);
 
 if ~isempty(groupID)
