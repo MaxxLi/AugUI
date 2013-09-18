@@ -1,4 +1,4 @@
-    function varargout = DataGui(varargin)
+ function varargout = DataGui(varargin)
 % DATAGUI MATLAB code for DataGui.fig
 %      DATAGUI, by itself, creates a new DATAGUI or raises the existing
 %      singleton*.
@@ -109,42 +109,74 @@ else
 end
 
 index = get(handles.Contaminants,'Value');
+
+
+phandles =[];
+
 if index <= 10
     mask2 = (handles.allPPM(:,index) > 0 );
+    concentrations = unique(handles.allPPM(:, index));
+    colors ='bgrkcmy'; 
+    concentrations = concentrations(find(concentrations));
+
+
+    for i=1:length(concentrations)
+        if index<=10
+            mask3 = handles.allPPM(:, index) == concentrations(i) ;
+        else
+            mask3 = sum(aPPM)==0;
+        end
+        mask = mask1 & mask2 & mask3;
+        h = plot(wavelengths,handles.allAbs(mask,:),colors(mod(i-1,7)+1));
+        hold on; 
+        phandles = [phandles, h(1)];
+
+
+    end
+    hold off;
+    grid minor;
+    axis([200 900 0 1]);axis('auto y');
+    contaminants = {'Nitrate','Nitrite','Copper','Iron','Glycol',...
+        'Cyanide', 'Mercury','Acrylamide','24D','Chromate'};
+    units = {' ppm',' ppm',' ppm',' ppb',' ppm',' ppm',' ppb',' ppb',' ppb',' ppb'};
+    title([contaminants{index},' Training Data']);
+    xlabel('Wavelength(nm)');
+    ylabel('Absorption');
+    text = num2str(concentrations(:));
+    text = [text, repmat(units{index},length(concentrations),1)];
+    legend(phandles, text);
+    
 else
     mask2 = sum(handles.allPPM,2) == 0;
-end
-concentrations = unique(handles.allPPM(:, index));
-colors ='bgrkcmy'; 
-phandles =[];
-concentrations = concentrations(find(concentrations));
-for i=1:length(concentrations)
-    if index<=10
-        mask3 = handles.allPPM(:, index) == concentrations(i) ;
-    else
-        mask3 = sum(aPPM)==0;
+    groupID = unique(handles.allID(mask2));
+    colors ='bgrkcmy'; 
+    phandles =[];
+    for i=1:length(groupID)
+
+        mask3 = handles.allID == groupID(i) ;
+
+        mask = mask1 & mask2 & mask3;
+        h = plot(wavelengths,handles.allAbs(mask,:),colors(mod(i-1,7)+1));
+        hold on; 
+        phandles = [phandles, h(1)];
+
+
     end
-    mask = mask1 & mask2 & mask3;
-    h = plot(wavelengths,handles.allAbs(mask,:),colors(mod(i-1,7)+1));
-    hold on; 
-    phandles = [phandles, h(1)];
+    hold off;
+    grid minor;
+    axis([200 900 0 1]);axis('auto y');
+    contaminants = {'Nitrate','Nitrite','Copper','Iron','Glycol',...
+        'Cyanide', 'Mercury','Acrylamide','24D','Chromate'};
+    title([contaminants{index},' Training Data']);
+    xlabel('Wavelength(nm)');
+    ylabel('Absorption');
+    text = num2str(groupID(:));
 
-
+    legend(phandles, text);
+    
 end
-hold off;
-grid minor;
-axis([200 900 0 1]);axis('auto y');
-contaminants = {'Nitrate','Nitrite','Copper','Iron','Glycol',...
-    'Cyanide', 'Mercury','Acrylamide','24D','Chromate'};
-units = {' ppm',' ppm',' ppm',' ppb',' ppm',' ppm',' ppb',' ppb',' ppb',' ppb'};
-title([contaminants{index},' Training Data']);
-xlabel('Wavelength(nm)');
-ylabel('Absorption');
-text = num2str(concentrations(:));
-text = [text, repmat(units{index},length(concentrations),1)];
-legend(phandles, text);
 
-	
+
 
 
 % --------------------------------------------------------------------
@@ -240,7 +272,7 @@ else
 end
 
 groupID = unique(handles.allID(mask));
-groupID = num2str(groupID
+groupID = num2str(groupID);
 groupID = strvcat('default', groupID);
 
 if ~isempty(groupID)
