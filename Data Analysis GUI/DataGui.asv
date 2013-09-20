@@ -22,7 +22,7 @@
 
 % Edit the above text to modify the response to help DataGui
 
-% Last Modified by GUIDE v2.5 16-Sep-2013 10:27:44
+% Last Modified by GUIDE v2.5 19-Sep-2013 10:52:16
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -59,6 +59,7 @@ load trainingdata;
 handles.allAbs = allAbs;
 handles.allPPM = allPPM;
 handles.allID = allID;
+handles.allAbsR = allAbsR;
 % Update handles structure
 guidata(hObject, handles);
 
@@ -165,13 +166,10 @@ else
     hold off;
     grid minor;
     axis([200 900 0 1]);axis('auto y');
-    contaminants = {'Nitrate','Nitrite','Copper','Iron','Glycol',...
-        'Cyanide', 'Mercury','Acrylamide','24D','Chromate'};
-    title([contaminants{index},' Training Data']);
+    title('Tap Training Data');
     xlabel('Wavelength(nm)');
     ylabel('Absorption');
     text = num2str(groupID(:));
-
     legend(phandles, text);
     
 end
@@ -259,6 +257,8 @@ warning('off','all')
 index = get(handles.Contaminants, 'Value');
 set(handles.concdrop, 'String', ' ');
 set(handles.groupIDdrop, 'String', ' ');
+set(handles.groupIDdrop, 'Value', 1);
+set(handles.concdrop, 'Value', 1);
 if index == 11
     mask = sum(handles.allPPM,2) == 0;
 else 
@@ -272,10 +272,11 @@ else
 end
 
 groupID = unique(handles.allID(mask));
-groupID = num2str(groupID);
-groupID = strvcat('default', groupID);
+
 
 if ~isempty(groupID)
+    groupID = num2str(groupID);
+    groupID = strvcat('all', groupID);
     set(handles.groupIDdrop, 'String', groupID);
 else 
     msgbox('No ID detected');
@@ -378,3 +379,67 @@ function concdrop_Callback(hObject, eventdata, handles)
 
 % Hints: contents = cellstr(get(hObject,'String')) returns concdrop contents as cell array
 %        contents{get(hObject,'Value')} returns selected item from concdrop
+
+
+% --- Executes on button press in DeleteButton.
+function DeleteButton_Callback(hObject, eventdata, handles)
+% hObject    handle to DeleteButton (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+Confirm = questdlg('Are you Sure?',' ','Yes','No','No');
+if Confirm == 'Yes'
+    h = waitbar(0,'Please wait...');
+    allAbs = handles.allAbs;
+    allPPM = handles.allPPM;
+    allID = handles.allID;
+    allAbsR = handles.allAbsR;
+    save('trainingdata(backup).mat', 'allAbs', 'allAbsR', 'allPPM', 'allID');
+    waitbar(1
+    index = get(handles.concdrop, 'Value');
+    concentration = get(handles.concdrop, 'String');
+    conc = str2double(concentration(index,:));
+    index = get(handles.Contaminants,'Value');
+    mask = handles.allPPM(:,index) == conc;
+    handles.allAbs(mask,:) = [];
+    handles.allAbsR(mask,:) = [];
+    handles.allPPM(mask,:) = [];
+    handles.allID(mask,:) = [];
+    allAbs = handles.allAbs;
+    allPPM = handles.allPPM;
+    allID = handles.allID;
+    allAbsR = handles.allAbsR;
+    save('trainingdata.mat', 'allAbs', 'allAbsR', 'allPPM', 'allID');
+    guidata(hObject, handles);
+
+
+    index = get(handles.Contaminants, 'Value');
+    set(handles.concdrop, 'String', ' ');
+    set(handles.groupIDdrop, 'String', ' ');
+    set(handles.groupIDdrop, 'Value', 1);
+    set(handles.concdrop, 'Value', 1);
+    if index == 11
+        mask = sum(handles.allPPM,2) == 0;
+    else 
+        mask = handles.allPPM(:,index) > 0;
+        concentration = unique(handles.allPPM(:, index));
+        concentration = concentration(find(concentration));
+
+        if ~isempty(concentration)
+            set(handles.concdrop, 'String', concentration);
+        end
+    end
+
+    groupID = unique(handles.allID(mask));
+
+
+    if ~isempty(groupID)
+        groupID = num2str(groupID);
+        groupID = strvcat('all', groupID);
+        set(handles.groupIDdrop, 'String', groupID);
+    else 
+        msgbox('No ID detected');
+    end
+    pushbutton1_Callback(handles.pushbutton1, eventdata, handles)
+end
+
